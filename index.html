@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>a little surprise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   EDIT ME → find "const CONFIG" in the script below.
+   ========================================================= */
+:root{
+  --cream:#FFF6EC;--pink:#F6B5C3;--pink-deep:#C9647C;
+  --matcha:#A7C77B;--matcha-dark:#6E9146;
+  --wood:#E3BE93;--wood-dark:#C99C6E;
+  --night:#0C0B18;--ink:#3A3340;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overscroll-behavior:none}
+body{font-family:'Quicksand',system-ui,sans-serif;background:var(--night);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+#stage{position:relative;width:100%;max-width:480px;height:100dvh;overflow:hidden}
+
+.scene{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:18px;padding:30px 20px;text-align:center}
+.scene.on{display:flex;animation:fade .55s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.sky{background:radial-gradient(120% 80% at 50% 20%,#1B1A33 0%,var(--night) 70%)}
+.day{background:linear-gradient(180deg,#BFE3F5 0%,#DFF3E3 60%,#C6E2A8 100%)}
+.room{background:linear-gradient(180deg,#FDF0DC 0%,#F8E3C8 68%,#E3BE93 68%,#D8AE80 100%)}
+.kitchen{background:linear-gradient(180deg,#FBEBD2 0%,#F7DFBE 100%)}
+.blush{background:radial-gradient(120% 90% at 50% 38%,#FFE3EC 0%,#F9C6D6 62%,#F0AEC3 100%)}
+
+.stars{position:absolute;inset:0;pointer-events:none}
+.stars i{position:absolute;background:#fff;border-radius:50%;animation:tw 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+
+.say{position:relative;background:#fff;color:var(--ink);border:2.5px solid var(--ink);
+  border-radius:22px;padding:12px 18px;font-weight:700;font-size:15px;line-height:1.35;
+  max-width:17em;min-height:20px;z-index:6}
+.say:before,.say:after{content:"";position:absolute;left:30px;border:11px solid transparent;
+  border-top-color:var(--ink);border-bottom:0;bottom:-13px}
+.say:after{bottom:-9px;left:32px;border-width:9px;border-top-color:#fff}
+.say:empty{display:none}
+
+.tap{font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.35);padding:6px 15px;
+  border-radius:999px;animation:blink 1.8s ease-in-out infinite;z-index:6}
+.tap.dark{background:rgba(58,51,64,.14);color:var(--ink)}
+.tap:empty{display:none}
+@keyframes blink{0%,100%{opacity:.55}50%{opacity:1}}
+
+button{font-family:inherit;border:0;background:none;padding:0;cursor:pointer;color:inherit}
+button:focus-visible{outline:3px solid var(--matcha-dark);outline-offset:4px;border-radius:12px}
+.press{transition:transform .14s ease}
+.press:active{transform:scale(.92)}
+.btn{background:var(--pink);color:#fff;border:2.5px solid var(--ink);border-radius:999px;
+  padding:12px 28px;font-weight:800;font-size:16px;box-shadow:0 5px 0 var(--ink);z-index:6}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+svg{overflow:visible;display:block}
+
+.bun{width:150px;animation:hop 2.4s ease-in-out infinite}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+
+/* rocket */
+#rocket{width:132px;animation:hover 2.2s ease-in-out infinite}
+@keyframes hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+#rocket.launch{animation:launch 1.7s cubic-bezier(.55,0,.9,.25) forwards}
+@keyframes launch{to{transform:translateY(-125dvh) scale(.45)}}
+.flame{opacity:0;transform-origin:50px 128px}
+#rocket.launch .flame{opacity:1;animation:burn .1s infinite alternate}
+@keyframes burn{from{transform:scaleY(1)}to{transform:scaleY(.7) scaleX(1.12)}}
+
+/* constellation */
+.consw{position:relative;width:min(330px,88vw);height:290px}
+.consw svg{position:absolute;inset:0;width:100%;height:100%}
+.star{position:absolute;width:46px;height:46px;transform:translate(-50%,-50%);display:grid;place-items:center}
+.star b{width:12px;height:12px;border-radius:50%;background:#FFF3C9;
+  box-shadow:0 0 12px 3px rgba(255,240,190,.75);transition:transform .2s}
+.star.next b{animation:ping 1.1s ease-in-out infinite;background:#fff}
+@keyframes ping{0%,100%{transform:scale(1)}50%{transform:scale(1.8)}}
+.star.hit b{background:#fff;transform:scale(1.3)}
+
+/* ============ kitchen bench ============ */
+.bench{position:relative;width:min(370px,94vw);display:flex;flex-direction:column;align-items:center}
+.bowlzone{position:relative;height:170px;width:100%;display:grid;place-items:end center;padding-bottom:4px}
+.bowlzone svg{width:170px}
+#bowl{position:relative;z-index:2}
+.target{position:absolute;left:50%;top:52px;transform:translateX(-50%);
+  width:132px;height:16px;border-radius:4px;border:2.5px dashed var(--matcha-dark);
+  opacity:0;transition:opacity .3s;z-index:3;pointer-events:none}
+.target.show{opacity:.9}
+.stream{position:absolute;width:9px;background:linear-gradient(180deg,#CDE7F2,#A9D4E6);
+  border-radius:6px;opacity:0;z-index:1;pointer-events:none}
+.stream.on{opacity:.95}
+.puff{position:absolute;width:90px;height:90px;border-radius:50%;pointer-events:none;z-index:4;
+  background:radial-gradient(circle,rgba(143,175,98,.85),rgba(143,175,98,0) 70%);
+  transform:scale(.3);opacity:0}
+.puff.go{animation:puff .8s ease-out forwards}
+@keyframes puff{0%{transform:scale(.3);opacity:.95}100%{transform:scale(2.1);opacity:0}}
+
+.counter{width:100%;background:var(--wood);border:2.5px solid var(--ink);border-radius:12px;
+  padding:12px 8px;display:flex;justify-content:space-evenly;align-items:flex-end;gap:4px;
+  min-height:100px;box-shadow:0 6px 0 var(--wood-dark)}
+.tool{width:72px;height:80px;display:grid;place-items:end center;position:relative;
+  touch-action:none;transition:transform .35s cubic-bezier(.3,1.3,.5,1),opacity .3s}
+.tool svg{width:100%;max-height:80px;pointer-events:none}
+.tool.hide{opacity:0;pointer-events:none;transform:translateY(14px)}
+.tool.used{opacity:.28;pointer-events:none}
+.tool.grab{cursor:grab}
+.tool.dragging{transition:none;z-index:70;filter:drop-shadow(0 12px 14px rgba(0,0,0,.35))}
+.tool.ready:after{content:"";position:absolute;inset:-7px;border-radius:14px;
+  border:2.5px dashed var(--matcha-dark);animation:blink 1.4s ease-in-out infinite}
+.tool.dragging:after{display:none}
+.hot{animation:hotpulse .8s ease-in-out infinite}
+@keyframes hotpulse{0%,100%{filter:none}50%{filter:drop-shadow(0 0 10px rgba(110,145,70,.9))}}
+
+.bar{width:200px;height:14px;border-radius:999px;background:#fff;border:2.5px solid var(--ink);
+  overflow:hidden;z-index:6;position:relative}
+.bar i{display:block;height:100%;width:0;background:var(--matcha-dark);transition:width .12s linear}
+.bar.hidden{display:none}
+
+.cups{display:flex;gap:26px;align-items:flex-end}
+.cup{width:92px}
+.cup.gulp{animation:gulp .6s ease forwards}
+@keyframes gulp{to{transform:scale(.9) translateY(12px);opacity:.2}}
+
+/* puzzle */
+.puzw{position:relative;width:min(290px,80vw);aspect-ratio:1}
+.heartline{position:absolute;inset:0;width:100%;height:100%;opacity:.5}
+.board{position:absolute;inset:0}
+.board.done{clip-path:url(#heartclip);animation:pop .6s cubic-bezier(.3,1.5,.5,1)}
+@keyframes pop{from{transform:scale(.9)}to{transform:scale(1)}}
+.piece{position:absolute;width:50%;height:50%;overflow:hidden;
+  border:2px solid rgba(58,51,64,.5);border-radius:8px;
+  transition:all .55s cubic-bezier(.3,1.3,.5,1);box-shadow:0 4px 10px rgba(0,0,0,.2)}
+.piece img{position:absolute;width:200%;height:200%;object-fit:cover;
+  object-position:var(--focus,50% 50%);pointer-events:none;display:block}
+.piece[data-col="0"] img{left:0}
+.piece[data-col="1"] img{left:-100%}
+.piece[data-row="0"] img{top:0}
+.piece[data-row="1"] img{top:-100%}
+.piece.set{border-radius:0;border-color:transparent;box-shadow:none}
+.board.done .piece{border:0}
+
+.letter{background:var(--cream);border:2.5px solid var(--ink);border-radius:16px;padding:22px 20px;
+  max-width:330px;max-height:54dvh;overflow:auto;text-align:left;font-size:15px;line-height:1.65;
+  box-shadow:0 9px 0 var(--ink);z-index:6}
+.letter h3{font-family:'Baloo 2',cursive;font-size:24px;margin:0 0 10px;color:var(--pink-deep)}
+.letter p{margin:0 0 12px}
+.sig{font-weight:800;color:var(--pink-deep)}
+.big{font-family:'Baloo 2',cursive;font-size:clamp(30px,10vw,46px);font-weight:800;
+  color:var(--pink-deep);line-height:1.05;text-shadow:0 3px 0 #fff;z-index:6}
+
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:99}
+.confetti b{position:absolute;top:-20px;width:9px;height:15px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(112dvh) rotate(760deg)}}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <clipPath id="heartclip" clipPathUnits="objectBoundingBox">
+    <path d="M0.5,0.92 C0.12,0.64 0.02,0.40 0.16,0.24 C0.30,0.08 0.46,0.16 0.5,0.30 C0.54,0.16 0.70,0.08 0.84,0.24 C0.98,0.40 0.88,0.64 0.5,0.92 Z"/>
+  </clipPath>
+</defs></svg>
+
+<div id="stage">
+
+<section class="scene blush on" id="s1">
+  <div class="say" id="say1"></div>
+  <div class="bun" id="bun1"></div>
+</section>
+
+<section class="scene sky" id="s2">
+  <div class="stars"></div>
+  <div class="say" id="say2"></div>
+  <button id="rocket" class="press" aria-label="Launch the rocket"></button>
+  <div class="tap">tap the rocket to take off</div>
+</section>
+
+<section class="scene sky" id="s3">
+  <div class="stars"></div>
+  <div class="say" id="say3"></div>
+  <div class="consw" id="consw"><svg id="lines" preserveAspectRatio="none"></svg></div>
+  <div class="tap" id="tap3">tap the glowing star</div>
+</section>
+
+<section class="scene kitchen" id="s4">
+  <div class="say" id="say4"></div>
+  <div class="bun" id="bun4"></div>
+  <button class="btn" id="go4">let's make it</button>
+</section>
+
+<!-- matcha -->
+<section class="scene kitchen" id="s5">
+  <div class="say" id="say5"></div>
+  <div class="bench">
+    <div class="bowlzone" id="bowlzone">
+      <div class="stream" id="stream"></div>
+      <div class="target" id="target"></div>
+      <div class="puff" id="puff"></div>
+      <div id="bowl"></div>
+    </div>
+    <div class="counter">
+      <div class="tool" id="tin"   aria-label="matcha tin" role="button" tabindex="0"></div>
+      <div class="tool" id="spoon" aria-label="wooden spoon" role="button" tabindex="0"></div>
+      <div class="tool" id="pot"   aria-label="teapot" role="button" tabindex="0"></div>
+      <div class="tool" id="whisk" aria-label="whisk" role="button" tabindex="0"></div>
+    </div>
+  </div>
+  <div class="bar hidden" id="meter"><i></i></div>
+  <div class="tap dark" id="tap5"></div>
+</section>
+
+<section class="scene kitchen" id="s6">
+  <div class="say" id="say6"></div>
+  <div class="cups" id="cups"></div>
+  <div class="tap dark">tap a drink</div>
+</section>
+
+<section class="scene room" id="s7">
+  <div class="say" id="say7"></div>
+  <div class="puzw" id="puzw"></div>
+  <div class="tap dark" id="tap7">tap the pieces to place them</div>
+</section>
+
+<section class="scene sky" id="s8">
+  <div class="stars"></div>
+  <div class="say" id="say8"></div>
+  <div class="bun" id="bun8" style="width:124px"></div>
+  <button class="btn" id="go8">hold on tight</button>
+</section>
+
+<section class="scene day" id="s9">
+  <div class="say" id="say9"></div>
+  <button class="press" id="mailbox" aria-label="Open the mailbox"></button>
+  <div class="tap dark">tap the mailbox</div>
+</section>
+
+<section class="scene blush" id="s10">
+  <div class="big" id="bigTitle"></div>
+  <button class="press" id="envelope" aria-label="Open the letter"></button>
+  <div class="tap dark" id="tap10">tap to read</div>
+  <div class="letter" id="letter" hidden></div>
+  <button class="btn" id="again" hidden style="background:#fff;color:var(--pink-deep)">play again</button>
+</section>
+
+</div>
+
+<script>
+const CONFIG = {
+  name:"Ellie", age:21, from:"Ibrahim",
+  title:"happy 21st bday ellie!",
+  letter:[
+    "You almost got a normal happy-birthday text. Then I wondered what would happen if I built a small planet instead, and here we are.",
+    "Thanks for being someone worth staying up late for. I hope 21 is loud, warm, and full of drinks that are far too sweet.",
+    "The matcha was real. The abduction was not. Mostly."
+  ],
+  photo:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=700&q=70",
+
+  /* Which part of the photo to keep when it gets cropped square.
+     "50% 50%" = centre. Lower the second number to keep faces:
+     "50% 30%" pulls the crop upward, "50% 70%" pulls it down.
+     First number shifts left/right the same way.            */
+  photoFocus:"50% 40%"
+};
+
+const $=s=>document.querySelector(s);
+const el=(t,c)=>{const n=document.createElement(t); if(c)n.className=c; return n;};
+const STEPS={}; let cur='s1';
+function go(id,delay=0){
+  setTimeout(()=>{$('#'+cur).classList.remove('on');$('#'+id).classList.add('on');
+    cur=id;STEPS[id]&&STEPS[id]();},delay);
+}
+function say(node,text,after){
+  node.textContent='';let i=0;
+  const t=setInterval(()=>{node.textContent=text.slice(0,++i);
+    if(i>=text.length){clearInterval(t);after&&after();}},28);
+}
+document.querySelectorAll('.stars').forEach(f=>{
+  for(let i=0;i<48;i++){const s=el('i'),r=Math.random()*2+1;
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${r}px;height:${r}px;animation-delay:${-Math.random()*3}s`;
+    f.appendChild(s);}
+});
+
+/* ---------- drag engine ---------- */
+function draggable(node,{onDrag,onDrop}){
+  let sx=0,sy=0,on=false;
+  node.addEventListener('pointerdown',e=>{
+    if(!node.classList.contains('grab'))return;
+    e.preventDefault(); on=true; sx=e.clientX; sy=e.clientY;
+    node.setPointerCapture(e.pointerId);
+    node.classList.add('dragging');
+  });
+  node.addEventListener('pointermove',e=>{
+    if(!on)return;
+    node.style.transform=`translate(${e.clientX-sx}px,${e.clientY-sy}px) scale(1.12)`;
+    onDrag&&onDrag(e);
+  });
+  const end=e=>{
+    if(!on)return; on=false;
+    node.classList.remove('dragging');
+    node.style.transform='';
+    onDrop&&onDrop(e);
+  };
+  ['pointerup','pointercancel'].forEach(ev=>node.addEventListener(ev,end));
+}
+function over(node,target,pad=26){
+  const a=node.getBoundingClientRect(),b=target.getBoundingClientRect();
+  const cx=a.left+a.width/2, cy=a.top+a.height/2;
+  return cx>b.left-pad&&cx<b.right+pad&&cy>b.top-pad&&cy<b.bottom+pad;
+}
+
+/* ---------- bunny ---------- */
+function bunny(outfit){
+  const fit={
+    dress:`<path d="M38 96 q22 -14 44 0 l7 40 q-29 10 -58 0z" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>`,
+    apron:`<path d="M40 96 q20 -12 40 0 l6 40 q-26 9 -52 0z" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+           <path d="M45 102 h30 v30 h-30z" fill="#F9D7DE"/>
+           <path d="M60 112 q-7 -7 -11 0 q-4 7 11 15 q15 -8 11 -15 q-4 -7 -11 0z" fill="#F6B5C3" stroke="#3A3340" stroke-width="2"/>`,
+    space:`<path d="M36 94 q24 -14 48 0 l6 44 q-30 11 -60 0z" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+           <rect x="50" y="108" width="20" height="15" rx="4" fill="#FFE9A8" stroke="#3A3340" stroke-width="2.5"/>
+           <circle cx="56" cy="115" r="2.4" fill="#3A3340"/><circle cx="64" cy="115" r="2.4" fill="#3A3340"/>`
+  }[outfit]||'';
+  return `<svg viewBox="0 0 120 150">
+    <ellipse cx="60" cy="144" rx="30" ry="5" fill="rgba(0,0,0,.12)"/>
+    <path d="M44 46 q-6 -40 4 -42 q10 -2 8 40z" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+    <path d="M76 46 q6 -40 -4 -42 q-10 -2 -8 40z" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+    ${fit}
+    <circle cx="60" cy="66" r="30" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+    <circle cx="49" cy="62" r="3.6" fill="#3A3340"/><circle cx="71" cy="62" r="3.6" fill="#3A3340"/>
+    <path d="M56 74 l8 6 M64 74 l-8 6" stroke="#3A3340" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="34" cy="112" rx="9" ry="7" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+    <ellipse cx="86" cy="112" rx="9" ry="7" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+  </svg>`;
+}
+$('#bun1').innerHTML=bunny('dress');
+$('#bun4').innerHTML=bunny('apron');
+$('#bun8').innerHTML=bunny('space');
+
+/* ---------- art ---------- */
+const ART={
+  tin:(open)=>`<svg viewBox="0 0 100 100">
+    ${open?`<ellipse cx="78" cy="12" rx="23" ry="7" fill="#B9D68F" stroke="#3A3340" stroke-width="3"/>`:''}
+    <rect x="14" y="26" width="72" height="70" rx="9" fill="#CBE0A5" stroke="#3A3340" stroke-width="3"/>
+    <rect x="14" y="46" width="72" height="32" fill="#FFF8E8" stroke="#3A3340" stroke-width="3"/>
+    <text x="50" y="60" font-size="13" font-weight="700" text-anchor="middle" fill="#3A3340" font-family="Quicksand">i love u</text>
+    <text x="50" y="73" font-size="13" font-weight="700" text-anchor="middle" fill="#3A3340" font-family="Quicksand">so matcha</text>
+    <ellipse cx="50" cy="26" rx="36" ry="9" fill="${open?'#8FAF62':'#B9D68F'}" stroke="#3A3340" stroke-width="3"/>
+  </svg>`,
+  spoon:(full)=>`<svg viewBox="0 0 100 100">
+    <path d="M50 94 v-44" stroke="#D9A96B" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="50" cy="36" rx="19" ry="14" fill="#E7C39B" stroke="#3A3340" stroke-width="3"/>
+    ${full?`<ellipse cx="50" cy="31" rx="14" ry="9" fill="#8FAF62"/>`:''}
+  </svg>`,
+  pot:`<svg viewBox="0 0 110 100">
+    <path d="M84 52 q18 -4 22 8 q-8 8 -22 6z" fill="#F9C9D5" stroke="#3A3340" stroke-width="3"/>
+    <ellipse cx="52" cy="60" rx="34" ry="30" fill="#F9C9D5" stroke="#3A3340" stroke-width="3"/>
+    <path d="M18 50 q-16 6 -5 22" fill="none" stroke="#3A3340" stroke-width="3"/>
+    <ellipse cx="52" cy="30" rx="21" ry="8" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+    <circle cx="52" cy="22" r="6" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+    <circle cx="40" cy="58" r="3" fill="#fff"/><circle cx="62" cy="68" r="3" fill="#fff"/><circle cx="54" cy="48" r="3" fill="#fff"/>
+  </svg>`,
+  whisk:`<svg viewBox="0 0 80 110">
+    <rect x="28" y="2" width="24" height="34" rx="7" fill="#E7C39B" stroke="#3A3340" stroke-width="3"/>
+    <path d="M28 36 q-14 34 0 62 M36 36 q-8 34 0 62 M44 36 q8 34 0 62 M52 36 q14 34 0 62" fill="none" stroke="#D9A96B" stroke-width="3"/>
+    <path d="M26 94 q14 10 28 0" fill="none" stroke="#D9A96B" stroke-width="3"/>
+  </svg>`,
+  bowl:(lvl,froth)=>`<svg viewBox="0 0 150 110">
+    ${lvl>0?`<ellipse cx="75" cy="${46-lvl*3}" rx="${28+lvl*11}" ry="${6+lvl*3.4}" fill="${froth?'#B7D18E':'#8FAF62'}"/>`:''}
+    ${froth?`<ellipse cx="60" cy="38" rx="8" ry="4" fill="#E9F3DC"/><ellipse cx="88" cy="43" rx="10" ry="5" fill="#E9F3DC"/><ellipse cx="74" cy="34" rx="6" ry="3" fill="#F2F8EA"/>`:''}
+    <path d="M20 40 q6 56 55 56 q49 0 55 -56z" fill="#FFF8E8" stroke="#3A3340" stroke-width="3"/>
+    <ellipse cx="75" cy="40" rx="55" ry="12" fill="none" stroke="#3A3340" stroke-width="3"/>
+    <path d="M56 92 h38 q-4 12 -19 12 q-15 0 -19 -12z" fill="#FFF8E8" stroke="#3A3340" stroke-width="3"/>
+  </svg>`,
+  cup:(t)=>`<svg viewBox="0 0 110 150">
+    <path d="M22 44 h66 l-8 92 q-25 8 -50 0z" fill="#EAF3D8" stroke="#3A3340" stroke-width="3"/>
+    <path d="M26 74 h58 l-6 62 q-23 7 -46 0z" fill="#A7C77B"/>
+    ${t==='cream'
+      ?`<path d="M22 44 q10 -22 33 -22 q23 0 33 22z" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+        <path d="M55 22 q-4 -12 6 -14 q-2 10 6 12z" fill="#E06B7E" stroke="#3A3340" stroke-width="2.5"/>`
+      :`<path d="M22 44 q12 -18 33 -18 q21 0 33 18z" fill="#fff" stroke="#3A3340" stroke-width="3"/>`}
+    <rect x="18" y="40" width="74" height="10" rx="5" fill="#FFF8E8" stroke="#3A3340" stroke-width="3"/>
+  </svg>`,
+  mailbox:(open)=>`<svg viewBox="0 0 140 165">
+    <rect x="62" y="72" width="16" height="90" fill="#D89AA8" stroke="#3A3340" stroke-width="3"/>
+    ${open
+      ?`<path d="M18 34 h58 v46 h-58 q-14 -12 0 -46z" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+        <path d="M76 80 l34 16 v-56 l-34 -6z" fill="#E8A0B0" stroke="#3A3340" stroke-width="3"/>
+        <rect x="50" y="20" width="36" height="27" rx="3" fill="#FFF8E8" stroke="#3A3340" stroke-width="3"/>
+        <path d="M50 20 l18 15 l18 -15" fill="none" stroke="#3A3340" stroke-width="2.5"/>`
+      :`<path d="M18 34 h86 v46 h-86 q-14 -12 0 -46z" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+        <rect x="104" y="18" width="8" height="36" fill="#E06B7E" stroke="#3A3340" stroke-width="3"/>`}
+  </svg>`,
+  envelope:`<svg viewBox="0 0 160 120">
+    <rect x="8" y="18" width="144" height="94" rx="10" fill="#FFF8E8" stroke="#3A3340" stroke-width="3"/>
+    <path d="M8 26 l72 54 l72 -54" fill="none" stroke="#3A3340" stroke-width="3"/>
+    <path d="M66 82 q-10 -12 2 -18 q8 -4 12 6 q4 -10 12 -6 q12 6 2 18 q-8 8 -14 12 q-6 -4 -14 -12z" fill="#F6B5C3" stroke="#3A3340" stroke-width="2.5"/>
+  </svg>`
+};
+
+/* =========================================================
+   1 hello
+   ========================================================= */
+say($('#say1'),`hi ${CONFIG.name.toLowerCase()}!`,()=>{
+  setTimeout(()=>say($('#say1'),"uh oh... what's happening?!",()=>go('s2',1200)),1400);
+});
+
+/* =========================================================
+   2 rocket
+   ========================================================= */
+$('#rocket').innerHTML=`
+<svg viewBox="0 0 100 175">
+  <g class="flame">
+    <path d="M50 175 q-16 -22 -13 -34 q10 8 13 4 q3 4 13 -4 q3 12 -13 34z" fill="#F6884A"/>
+    <path d="M50 165 q-8 -13 -6 -20 q5 5 6 2 q1 3 6 -2 q2 7 -6 20z" fill="#FFD27A"/>
+  </g>
+  <rect x="36" y="120" width="28" height="12" rx="4" fill="#FFE9A8" stroke="#3A3340" stroke-width="3"/>
+  <path d="M26 88 q-16 12 -14 34 l16 -10z" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+  <path d="M74 88 q16 12 14 34 l-16 -10z" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+  <path d="M50 6 q26 30 26 74 v40 h-52 v-40 q0 -44 26 -74z" fill="#fff" stroke="#3A3340" stroke-width="3"/>
+  <path d="M50 6 q16 18 22 42 h-44 q6 -24 22 -42z" fill="#F6B5C3" stroke="#3A3340" stroke-width="3"/>
+  <circle cx="50" cy="76" r="18" fill="#BFE3F5" stroke="#3A3340" stroke-width="3"/>
+  <path d="M44 72 q-2 -15 2 -15 q4 0 3 15z M56 72 q2 -15 -2 -15 q-4 0 -3 15z" fill="#fff" stroke="#3A3340" stroke-width="2"/>
+  <ellipse cx="50" cy="82" rx="11" ry="12" fill="#fff" stroke="#3A3340" stroke-width="2"/>
+  <circle cx="46" cy="80" r="2" fill="#3A3340"/><circle cx="54" cy="80" r="2" fill="#3A3340"/>
+</svg>`;
+STEPS.s2=()=>say($('#say2'),`${CONFIG.from.toLowerCase()}'s message has been abducted`);
+$('#rocket').onclick=()=>{
+  $('#rocket').classList.add('launch');$('#rocket').disabled=true;
+  say($('#say2'),'hold on!!!');go('s3',1800);
+};
+
+/* =========================================================
+   3 constellation = 21
+   ========================================================= */
+const DIGITS=[
+  [[14,22],[27,13],[38,25],[26,46],[14,64],[40,64]],
+  [[58,28],[69,17],[69,64],[57,64],[82,64]]
+];
+STEPS.s3=()=>{
+  say($('#say3'),"now it's your turn — connect the stars!");
+  const w=$('#consw'),svg=$('#lines');
+  w.querySelectorAll('.star').forEach(n=>n.remove()); svg.innerHTML='';
+  const flat=[]; DIGITS.forEach(d=>d.forEach((p,i)=>flat.push({p,first:i===0})));
+  let next=0;
+  flat.forEach((s,i)=>{
+    const b=el('button','star press');
+    b.style.left=s.p[0]+'%';b.style.top=s.p[1]+'%';
+    b.innerHTML='<b></b>';b.dataset.i=i;b.setAttribute('aria-label','star '+(i+1));
+    b.onclick=()=>{
+      if(i!==next)return;
+      b.classList.add('hit');b.classList.remove('next');
+      if(!s.first){
+        const pv=flat[i-1].p;
+        const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+        ln.setAttribute('x1',pv[0]+'%');ln.setAttribute('y1',pv[1]+'%');
+        ln.setAttribute('x2',s.p[0]+'%');ln.setAttribute('y2',s.p[1]+'%');
+        ln.setAttribute('stroke','rgba(255,243,201,.9)');
+        ln.setAttribute('stroke-width','2.5');ln.setAttribute('stroke-linecap','round');
+        svg.appendChild(ln);
+      }
+      next++;
+      const nb=w.querySelector('.star[data-i="'+next+'"]'); nb&&nb.classList.add('next');
+      if(next===flat.length){
+        $('#tap3').textContent='';
+        say($('#say3'),`you did it — ${CONFIG.age}!`);
+        go('s4',2000);
+      }
+    };
+    w.appendChild(b);
+  });
+  w.querySelector('.star[data-i="0"]').classList.add('next');
+};
+
+/* =========================================================
+   4 kitchen
+   ========================================================= */
+STEPS.s4=()=>say($('#say4'),"looks like we're a matcha made in heaven!");
+$('#go4').onclick=()=>go('s5');
+
+/* =========================================================
+   5 MATCHA — hands on
+   ========================================================= */
+STEPS.s5=()=>{
+  const tin=$('#tin'),spoon=$('#spoon'),pot=$('#pot'),whisk=$('#whisk');
+  const bowl=$('#bowl'),stream=$('#stream'),target=$('#target'),puff=$('#puff');
+  const meter=$('#meter'),fill=meter.firstElementChild;
+
+  tin.innerHTML=ART.tin(false);
+  spoon.innerHTML=ART.spoon(false);
+  pot.innerHTML=ART.pot;
+  whisk.innerHTML=ART.whisk;
+  bowl.innerHTML=ART.bowl(0,false);
+  [spoon,pot,whisk].forEach(t=>t.classList.add('hide'));
+
+  /* --- step 1: tap the tin open --- */
+  tin.classList.add('ready');
+  say($('#say5'),'pop the tin open');
+  $('#tap5').textContent='tap the tin';
+  tin.onclick=()=>{
+    if(!tin.classList.contains('ready'))return;
+    tin.innerHTML=ART.tin(true); tin.classList.remove('ready'); tin.classList.add('hot');
+    spoon.classList.remove('hide'); spoon.classList.add('grab');
+    say($('#say5'),'drag the spoon into the tin');
+    $('#tap5').textContent='drag — don\'t tap';
+    step2();
+  };
+
+  /* --- step 2: drag spoon → tin, then spoon → bowl --- */
+  function step2(){
+    let scooped=false;
+    draggable(spoon,{
+      onDrag(){
+        const t=scooped?bowl:tin;
+        t.classList.toggle('hot',over(spoon,t));
+      },
+      onDrop(){
+        if(!scooped&&over(spoon,tin)){
+          scooped=true;
+          spoon.innerHTML=ART.spoon(true);
+          tin.classList.remove('hot'); tin.classList.add('used');
+          say($('#say5'),'got it — now tip it into the bowl');
+          bowl.classList.add('hot');
+        }else if(scooped&&over(spoon,bowl)){
+          bowl.classList.remove('hot');
+          spoon.classList.remove('grab'); spoon.classList.add('used');
+          spoon.innerHTML=ART.spoon(false);
+          const b=bowl.getBoundingClientRect(),z=$('#bowlzone').getBoundingClientRect();
+          puff.style.left=(b.left-z.left+b.width/2-45)+'px';
+          puff.style.top=(b.top-z.top+6)+'px';
+          puff.classList.add('go');
+          setTimeout(()=>{
+            puff.classList.remove('go');
+            bowl.innerHTML=ART.bowl(1,false);
+            step3();
+          },420);
+        }else if(!scooped){
+          say($('#say5'),'the tin, the tin!');
+        }
+      }
+    });
+  }
+
+  /* --- step 3: hold the teapot over the bowl, stop at the line --- */
+  function step3(){
+    pot.classList.remove('hide'); pot.classList.add('grab');
+    say($('#say5'),'hold the teapot over the bowl');
+    $('#tap5').textContent='stop at the dashed line';
+    target.classList.add('show');
+    meter.classList.remove('hidden');
+    let level=0, pourTimer=null;
+    const TARGET=70, MAX=100;
+
+    function startPour(){
+      if(pourTimer)return;
+      stream.classList.add('on');
+      pourTimer=setInterval(()=>{
+        level=Math.min(MAX,level+2.2);
+        fill.style.width=level+'%';
+        bowl.innerHTML=ART.bowl(1+level/100*1.2,false);
+        if(level>=MAX){stopPour();}
+      },40);
+    }
+    function stopPour(){
+      clearInterval(pourTimer); pourTimer=null;
+      stream.classList.remove('on');
+    }
+
+    draggable(pot,{
+      onDrag(e){
+        if(over(pot,bowl,10)){
+          const p=pot.getBoundingClientRect(),b=bowl.getBoundingClientRect(),z=$('#bowlzone').getBoundingClientRect();
+          stream.style.left=(p.left-z.left+p.width/2-4)+'px';
+          stream.style.top=(p.top-z.top+p.height*0.55)+'px';
+          stream.style.height=Math.max(10,(b.top+18)-(p.top+p.height*0.55))+'px';
+          startPour();
+        }else stopPour();
+      },
+      onDrop(){
+        stopPour();
+        if(level<40){ say($('#say5'),'that is a puddle. more water.'); return; }
+        target.classList.remove('show');
+        pot.classList.remove('grab'); pot.classList.add('used');
+        if(level>92) say($('#say5'),'okay that is a LOT of water. we move on.');
+        else if(level>=TARGET-12&&level<=TARGET+14) say($('#say5'),'perfect pour. chef.');
+        else say($('#say5'),'close enough, honestly.');
+        meter.classList.add('hidden'); fill.style.width='0%';
+        setTimeout(step4,1200);
+      }
+    });
+  }
+
+  /* --- step 4: scrub the whisk fast or the froth sinks --- */
+  function step4(){
+    whisk.classList.remove('hide'); whisk.classList.add('grab');
+    say($('#say5'),'whisk it — fast, back and forth!');
+    $('#tap5').textContent='scrub the whisk over the bowl';
+    meter.classList.remove('hidden'); fill.style.width='0%';
+    let froth=0,lastX=null,done=false;
+    const drain=setInterval(()=>{
+      if(done)return;
+      froth=Math.max(0,froth-1.1);
+      fill.style.width=froth+'%';
+    },120);
+
+    draggable(whisk,{
+      onDrag(e){
+        if(done)return;
+        if(over(whisk,bowl,40)){
+          if(lastX!==null){
+            froth=Math.min(100,froth+Math.min(9,Math.abs(e.clientX-lastX)*0.42));
+            fill.style.width=froth+'%';
+            whisk.style.transform+=` rotate(${(e.clientX-lastX)*0.5}deg)`;
+            if(froth>45&&froth<60) bowl.innerHTML=ART.bowl(2.2,false);
+          }
+          lastX=e.clientX;
+          if(froth>=100){
+            done=true; clearInterval(drain);
+            whisk.classList.remove('grab'); whisk.classList.add('used');
+            bowl.innerHTML=ART.bowl(2.2,true);
+            say($('#say5'),'frothy. genuinely perfect.');
+            $('#tap5').textContent='';
+            meter.classList.add('hidden');
+            go('s6',1600);
+          }
+        }else lastX=null;
+      },
+      onDrop(){ lastX=null; }
+    });
+  }
+};
+
+/* =========================================================
+   6 drinks
+   ========================================================= */
+STEPS.s6=()=>{
+  say($('#say6'),'one for you, one for me');
+  const w=$('#cups');w.innerHTML='';
+  ['plain','cream'].forEach(t=>{
+    const b=el('button','cup press');b.innerHTML=ART.cup(t);
+    b.setAttribute('aria-label','drink the matcha');
+    b.onclick=()=>{b.classList.add('gulp');say($('#say6'),'okay that was elite');go('s7',1500);};
+    w.appendChild(b);
+  });
+};
+
+/* =========================================================
+   7 puzzle
+   ========================================================= */
+STEPS.s7=()=>{
+  say($('#say7'),'help me build a puzzle!');
+  const w=$('#puzw');
+  w.innerHTML=`<svg class="heartline" viewBox="0 0 100 100">
+    <path d="M50 92 C12 64 2 40 16 24 C30 8 46 16 50 30 C54 16 70 8 84 24 C98 40 88 64 50 92z"
+      fill="none" stroke="#3A3340" stroke-width="2" stroke-dasharray="5 5"/></svg>
+    <div class="board" id="board"></div>`;
+  const board=$('#board');
+  const spots=[[0,0],[50,0],[0,50],[50,50]];
+  const scatter=[[-14,64],[86,72],[90,-8],[-18,4]];
+  let placed=0;
+  spots.forEach((p,i)=>{
+    const b=el('button','piece press');
+    b.dataset.col=p[0]?1:0; b.dataset.row=p[1]?1:0;
+    b.style.setProperty('--focus',CONFIG.photoFocus||'50% 50%');
+    b.innerHTML=`<img src="${CONFIG.photo}" alt="">`;
+    b.style.left=scatter[i][0]+'%';b.style.top=scatter[i][1]+'%';
+    b.setAttribute('aria-label','puzzle piece '+(i+1));
+    b.onclick=()=>{
+      if(b.classList.contains('set'))return;
+      b.classList.add('set');b.style.left=p[0]+'%';b.style.top=p[1]+'%';
+      if(++placed===4){
+        setTimeout(()=>board.classList.add('done'),450);
+        $('#tap7').textContent='';
+        say($('#say7'),'aww. look at us.');
+        go('s8',2400);
+      }
+    };
+    board.appendChild(b);
+  });
+};
+
+/* =========================================================
+   8 back to earth
+   ========================================================= */
+STEPS.s8=()=>say($('#say8'),"now let's hurry back down to earth!");
+$('#go8').onclick=()=>{
+  $('#bun8').style.transition='transform 1.2s ease-in';
+  $('#bun8').style.transform='translateY(60dvh) rotate(220deg)';
+  go('s9',1300);
+};
+
+/* =========================================================
+   9 mailbox
+   ========================================================= */
+$('#mailbox').innerHTML=ART.mailbox(false);
+$('#mailbox').style.width='150px';
+STEPS.s9=()=>say($('#say9'),"let's open the mailbox and find the missing message!");
+$('#mailbox').onclick=()=>{
+  $('#mailbox').innerHTML=ART.mailbox(true);$('#mailbox').disabled=true;
+  say($('#say9'),'found it!!');go('s10',1600);
+};
+
+/* =========================================================
+   10 letter
+   ========================================================= */
+$('#envelope').innerHTML=ART.envelope;
+$('#envelope').style.width='170px';
+STEPS.s10=()=>{$('#bigTitle').textContent=CONFIG.title;confetti();};
+$('#envelope').onclick=()=>{
+  $('#envelope').hidden=true;$('#tap10').hidden=true;
+  const l=$('#letter');l.hidden=false;
+  l.innerHTML=`<h3>dear ${CONFIG.name.toLowerCase()},</h3>`+
+    CONFIG.letter.map(p=>`<p>${p}</p>`).join('')+
+    `<div class="sig">— ${CONFIG.from.toLowerCase()}</div>`;
+  $('#again').hidden=false;confetti();
+};
+$('#again').onclick=()=>location.reload();
+
+function confetti(){
+  const c=el('div','confetti');document.body.appendChild(c);
+  const cols=['#F6B5C3','#FFE9A8','#A7C77B','#FFF8E8','#C9647C'];
+  for(let i=0;i<80;i++){
+    const b=el('b');
+    b.style.left=Math.random()*100+'%';
+    b.style.background=cols[i%cols.length];
+    b.style.animationDuration=(2.4+Math.random()*2.4)+'s';
+    b.style.animationDelay=(Math.random()*1.4)+'s';
+    c.appendChild(b);
+  }
+  setTimeout(()=>c.remove(),7000);
+}
+</script>
+</body>
+</html>
